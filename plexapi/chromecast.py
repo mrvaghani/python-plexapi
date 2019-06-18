@@ -94,7 +94,7 @@ class PlexController(BaseController):
         self.request_id = 0
 
     def _send_cmd(self, msg, namespace=None, inc_session_id=False,
-                 callback_function=None, inc=True):
+                  callback_function=None, inc=True):
         """Wrapper the commands."""
 
         if inc:
@@ -118,7 +118,7 @@ class PlexController(BaseController):
         return self.request_id
 
     def receive_message(self, message, data):
-        ''' Called when a media message is received. '''
+        """ Called when a media message is received. """
         self.logger.debug('Plex media receive function called.')
         if data[MESSAGE_TYPE] == TYPE_MEDIA_STATUS:
             self.logger.debug('(DH) MESSAGE RECEIVED: ' + data)
@@ -127,29 +127,32 @@ class PlexController(BaseController):
         return False
  
     def stop(self):
-        """ Send stop command. """
+        """Send stop command."""
         self._send_cmd({MESSAGE_TYPE: TYPE_STOP})
  
     def pause(self):
-        """ Send pause command. """
+        """Send pause command."""
         self._send_cmd({MESSAGE_TYPE: TYPE_PAUSE})
  
     def play(self):
-        """ Send play command. """
+        """Send play command."""
         self._send_cmd({MESSAGE_TYPE: TYPE_PLAY})
 
     def previous(self):
+        """Send previous command."""
         self._send_cmd({MESSAGE_TYPE: TYPE_PREVIOUS})
 
     def next(self):
         self._send_cmd({MESSAGE_TYPE: TYPE_NEXT})
 
     def seek(self, position):
+        """Send seek command"""
         self._send_cmd({MESSAGE_TYPE: TYPE_SEEK,
                        "currentTime": position,
                        "resumeState": "PLAYBACK_START"})
 
-    def rewind(self): # does not work
+    def rewind(self):
+        """Rewind back to the start"""
         self.seek(0)
 
     def _set_volume(self, percent):
@@ -159,7 +162,7 @@ class PlexController(BaseController):
 
     def set_volume(self, percent):
         # Feels dirty..
-        self._socket_client.receiver_controller.set_volume(float(55/100))
+        self._socket_client.receiver_controller.set_volume(float(percent/100))
 
     def volume_up(self, delta=0.1):
         """ Increment volume by 0.1 (or delta) unless it is already maxed.
@@ -183,7 +186,7 @@ class PlexController(BaseController):
         self._socket_client.receiver_controller.set_volume_muted(status)
  
     def show_media(self, media):
-        """Show the medai on the screen, but don't start it."""
+        """Show the media on the screen, but don't start it."""
         msg = media_to_chromecast_command(media, type=TYPE_DETAILS, requestid=self._inc_request())
         def cb():
             self._send_cmd(msg, inc_session_id=True, inc=False)
@@ -191,7 +194,7 @@ class PlexController(BaseController):
         self.launch(cb)
     
     def disable_subtitle(self): # Shit does not work.
-        """ Disable subtitle. """
+        """Disable subtitle."""
         self._send_cmd({
             MESSAGE_TYPE: TYPE_EDIT_TRACKS_INFO,
             "activeTrackIds": []
@@ -204,6 +207,9 @@ class PlexController(BaseController):
                        inc_session_id=True, inc=False)
 
     def play_media(self, item):
+        """Start playback in the chromecast using the
+           selected media.
+        """
         def app_launched_callback():
             self._send_start_play(item)
  
