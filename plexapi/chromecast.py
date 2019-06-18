@@ -240,8 +240,11 @@ if __name__ == '__main__':
     chromecasts = pychromecast.get_chromecasts()
     cast = next(cc for cc in chromecasts if cc.device.friendly_name == sys.argv[1])
 
-    cast.start()
+    # Start worker thead.
+    cast.start() # or connect manually using cast.connect()
+    # Initaliize the controller
     pc = PlexController()
+    # Add the controller so we can reach the the namespace changes etc.
     cast.register_handler(pc)
 
     pms = PlexServer(url, token)
@@ -249,12 +252,20 @@ if __name__ == '__main__':
     items = pms.search(media_name)
     if len(items):
         pc.play_media(items[0])
+        # pc.show_media(items[0])
+        # pc.pause()
+        # etc etc
+    else:
+        print('Didnt find any media')
 
     while True:
         try:
             time.sleep(1)
         except KeyboardInterrupt:
             break
+
+    # https://github.com/d8ahazard/FlexTV.bundle/blob/master/Contents/Libraries/Shared/pychromecast/controllers/plex.py#L154
+    # figure out what this is for.
 
 
 
