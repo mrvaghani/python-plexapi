@@ -7,7 +7,6 @@ try:
     import pychromecast
 except ImportError:
     print('pychromecast is needed')
-    return
 
 
 STREAM_TYPE_UNKNOWN = 'UNKNOWN'
@@ -211,15 +210,12 @@ class PlexController(BaseController):
         self.launch(app_launched_callback)
 
 
-
-
 if __name__ == '__main__':
     """Just to show the a example usage.
 
         Usage: python chromecast.py devicename movie_name url token
 
     """
-
     import logging
     import time
     import sys
