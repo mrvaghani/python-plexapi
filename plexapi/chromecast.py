@@ -242,7 +242,7 @@ if __name__ == '__main__':
     pc = PlexController()
     cast.register_handler(pc)
 
-    pms = Plexserver(url, token)
+    pms = PlexServer(url, token)
 
     items = pms.search(media_name)
     if len(items):
