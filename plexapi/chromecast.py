@@ -118,14 +118,19 @@ class PlexController(BaseController):
         return self.request_id
 
     def receive_message(self, message, data):
-        """ Called when a media message is received. """
+        """ Called when a messag from plex to our controller is received. 
+            
+            I havnt seen any message for ut but lets keep for for now, the 
+            tests i have done is minimal.
+        """
+ 
         self.logger.debug('Plex media receive function called.')
         if data[MESSAGE_TYPE] == TYPE_MEDIA_STATUS:
-            self.logger.debug('(DH) MESSAGE RECEIVED: ' + data)
+            self.logger.debug('(PlexController) MESSAGE RECEIVED: ' + data)
             return True
-
+    
         return False
- 
+        
     def stop(self):
         """Send stop command."""
         self._send_cmd({MESSAGE_TYPE: TYPE_STOP})
@@ -192,6 +197,14 @@ class PlexController(BaseController):
             self._send_cmd(msg, inc_session_id=True, inc=False)
 
         self.launch(cb)
+
+    @property    
+    def status(self):
+        # So to get this we could add a listener and update the data ourself
+        # or get can just use socket_clients
+        # status should get a own pr so we can grab the subtitle (episode title.)
+        return self._socket_client.media_controller.status
+
     
     def disable_subtitle(self): # Shit does not work.
         """Disable subtitle."""
@@ -257,6 +270,7 @@ if __name__ == '__main__':
         # etc etc
     else:
         print('Didnt find any media')
+
 
     while True:
         try:
