@@ -95,6 +95,8 @@ class PlexController(BaseController):
     def _send_cmd(self, msg, namespace=None, inc_session_id=False,
                   callback_function=None, inc=True):
         """Wrapper the commands."""
+        self.logger.debug('Sending msg %r %s %s %s %s',
+                          msg, namespace, inc_session_id, callback_function, inc)
 
         if inc:
             self._inc_request()
@@ -179,8 +181,16 @@ class PlexController(BaseController):
                 "volume delta must be greater than zero, not {}".format(delta))
         return self.set_volume(self.status.volume_level - delta)
 
-    def mute(self, status=True):  # WTF is status? bool?
-        self._socket_client.receiver_controller.set_volume_muted(status)
+    def mute(self, status=None):
+        """ mute the sound.
+            status is just a override.
+        """
+        if status is not None:
+            st = status
+        else:
+            st = not status.volume_muted
+
+        self._socket_client.receiver_controller.set_volume_muted(st)
 
     def show_media(self, media):
         """Show the media on the screen, but don't start it."""
@@ -191,11 +201,20 @@ class PlexController(BaseController):
 
         self.launch(cb)
 
+    def quit_app(self):
+        """Quit the plex app"""
+        self._socket_client.receiver_controller.stop_app()
+
     @property
     def status(self):
         # So to get this we could add a listener and update the data ourself
         # or get can just use socket_clients
         # status should get a own pr so we can grab the subtitle (episode title.)
+        # Lets just patch this for now..
+        def episode_title(self):
+            return self.media_metadata.get('subtitle')
+        mc = self._socket_client.media_controller.status
+        mc.episode_title = property(episode_title)
         return self._socket_client.media_controller.status
 
     def disable_subtitle(self):  # Shit does not work.
@@ -238,6 +257,7 @@ if __name__ == '__main__':
     token = sys.argv[4]
 
     chromecasts = pychromecast.get_chromecasts()
+    print(chromecasts)
     if len(chromecasts) > 1:
         cast = next(cc for cc in chromecasts if cc.device.friendly_name == sys.argv[1])
     else:
