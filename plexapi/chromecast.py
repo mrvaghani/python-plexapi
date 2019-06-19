@@ -238,6 +238,14 @@ class PlexController(BaseController):
 
         self.launch(app_launched_callback)
 
+    def join(self, timeout=None):
+        self._socket_client.join(timeout=timeout)
+
+    def disconnect(self, timeout=None, blocking=True):
+        self._socket_client.disconnect()
+        if blocking:
+            self.join(timeout=timeout)
+
 
 if __name__ == '__main__':
     """Just to show the a example usage.
