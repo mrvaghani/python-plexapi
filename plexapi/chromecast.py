@@ -2,8 +2,11 @@ import logging
 import sys
 import threading
 import time
-from urllib.parse import urlparse
 
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 try:
     import pychromecast
@@ -32,15 +35,8 @@ TYPE_GET_STATUS = 'GET_STATUS'
 TYPE_EDIT_TRACKS_INFO = 'EDIT_TRACKS_INFO'
 
 
-
-
-
 def media_to_chromecast_command(media, **kw):
     """Create the message that chromecast requires."""
-    try:
-        import plexapi
-    except ImportError:
-        return
 
     server_url = urlparse(media._server._baseurl)
     content_type = ('video/mp4') if media.TYPE in ('movie', 'episode') else ('audio/mp3')
@@ -220,7 +216,7 @@ class PlexController(BaseController):
             return self.media_metadata.get('subtitle')
         mc = self._socket_client.media_controller.status
         mc.episode_title = property(episode_title)
-        return self._socket_client.media_controller.status
+        return mc
 
     def disable_subtitle(self):  # Shit does not work.
         """Disable subtitle."""
@@ -282,7 +278,6 @@ if __name__ == '__main__':
     token = sys.argv[4]
 
     chromecasts = pychromecast.get_chromecasts()
-    print(chromecasts)
     if len(chromecasts) > 1:
         cast = next(cc for cc in chromecasts if cc.device.friendly_name == sys.argv[1])
     else:
@@ -302,7 +297,7 @@ if __name__ == '__main__':
     item = items[0].episodes().reload()
     if len(items):
         pc.block_until_playing(item)
-        #pc.play_media(item)
+        # pc.play_media(item)
         # pc.show_media(items[0])
         # pc.pause()
         # etc etc
@@ -314,6 +309,3 @@ if __name__ == '__main__':
             time.sleep(1)
         except KeyboardInterrupt:
             break
-
-    # https://github.com/d8ahazard/FlexTV.bundle/blob/master/Contents/Libraries/Shared/pychromecast/controllers/plex.py#L154
-    # figure out what this is for.
