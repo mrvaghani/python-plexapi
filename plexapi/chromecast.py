@@ -212,10 +212,11 @@ class PlexController(BaseController):
         # or get can just use socket_clients
         # status should get a own pr so we can grab the subtitle (episode title.)
         # Lets just patch this for now..
+        @property
         def episode_title(self):
             return self.media_metadata.get('subtitle')
         mc = self._socket_client.media_controller.status
-        mc.episode_title = property(episode_title)
+        mc.episode_title = episode_title
         return mc
 
     def disable_subtitle(self):  # Shit does not work.
@@ -225,29 +226,32 @@ class PlexController(BaseController):
             "activeTrackIds": []
         }, namespace='urn:x-cast:com.google.cast.media')
 
-    def _send_start_play(self, media):
-        msg = media_to_chromecast_command(media, requestid=self._inc_request())
+    def _send_start_play(self, media, **kwargs):
+        msg = media_to_chromecast_command(media, requestid=self._inc_request(), **kwargs)
         self._send_cmd(msg, namespace='urn:x-cast:com.google.cast.media',
                        inc_session_id=True, inc=False)
 
-    def block_until_playing(self, item, timeout=None):
+    def block_until_playing(self, item, timeout=None, **kwargs):
         """Helper just incase this is running as a script."""
         self.play_media(item)
         self.play_media_event.wait(timeout)
+        self.play_media_event.clear()
 
-    def play_media(self, item):
+    def play_media(self, item, **kwargs):
         """Start playback in the chromecast using the
            selected media.
+
+           kwargs is passed to the load method.
+
         """
         # Just incase..
         self.play_media_event.clear()
 
         def app_launched_callback():
             try:
-                self._send_start_play(item)
-                self.play_media_event.set()
+                self._send_start_play(item, **kwargs)
             finally:
-                self.play_media_event.clear()
+                self.play_media_event.set()
 
         self.launch(app_launched_callback)
 
@@ -258,6 +262,14 @@ class PlexController(BaseController):
         self._socket_client.disconnect()
         if blocking:
             self.join(timeout=timeout)
+
+    def step_forward(self):
+        offset = self.status.adjusted_current_time + 30
+        self.seek(offset)
+
+    def step_backwards(self):
+        offset = self.status.adjusted_current_time - 10
+        self.seek(offset)
 
 
 if __name__ == '__main__':
